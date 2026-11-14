@@ -5,11 +5,9 @@ import random
 
 #session state intialization
 if "question_count" not in st.session_state:
-    st.session_state['question_count'] = 20
+    st.session_state['question_count'] = 0
 if "hint_count" not in st.session_state:
-    st.session_state['hint_count'] = 3
-if "celebrity" not in st.session_state:
-    st.session_state['celebrity'] = ''
+    st.session_state['hint_count'] = 0
 if "display_hint" not in st.session_state:
     st.session_state['display_hint'] = ''
 
@@ -50,9 +48,8 @@ with st.sidebar:
             max_tokens=1
                 )
 
-                st.session_state.api_key = api_key
                 st.session_state.key_check = True #change to true
-                st.write("Key works. Let the game begin!!!")
+                st.toast("Key works. Let the game begin!!!") #toast disappears after 4 seconds
 
         except AuthenticationError:
                 st.error("Key is invalid.")
@@ -77,11 +74,9 @@ if not api_key: #check if the api key is provided, if not stop the app and ask f
     st.info("For the game to run correctly we need your Uni API key. Please enter it in the sidebar.")
     st.stop()
 
-client = OpenAI(
-    base_url="https://litellm.uni-osnabrueck.de/v1",
-    api_key=api_key
-)
-
+#transition from key checking to game beginning
+if st.session_state.key_check == True:
+    st.button("Start Game")
 
 #celebrity dictionary with hints - AI was used to create the hints
 celebrities = {
@@ -113,9 +108,10 @@ celebrities = {
 }
 
 
-#select celebrity using random
-celebrity = random.choice(list(celebrities))
-st.session_state.celebrity = celebrity #save
+#select celebrity using random 
+if 'celebrity' not in st.session_state:
+    celebrity = random.choice(list(celebrities))
+    st.session_state.celebrity = celebrity #save
 
 
 
@@ -126,45 +122,57 @@ if "message" not in st.session_state:
         messages=[
             {"role": "system", "content": f"""You are the quizmaster of a guessing game. The user is trying to guess a celebrity in under 20 questions.
 You should only respond yes or no, if their question is too broad or not answerable, please respond 'I can only answer yes or no questions'.
-If they write 'hint' or similar, please give them a hint about the celebrity. The celebrity is: {selected_celebrity}"""},
+If they ask for a hint tell them they must write 'hint' in this format, and they just wasted a question. The celebrity is: {st.session_state.celebrity}"""},
             {"role": "user", "content": "Let's begin!"}
         ]
 )
 
 #track the number of questions
-st.sidebar.metric(f"Questions remaining: {20 - st.session_state.question_count}") #display questions left in sidebar
+questions_remaining = 20 - st.session_state.quesstion_count
+st.sidebar.metric("Questions remaining", questions_remaining) #display questions left in sidebar
 
 #track hints
-st.sidebar.metric(f"Hints remaining: {3 - st.session_state.hint_count}")
+hints_remaining = 20 - st.session_state.quesstion_count
+st.sidebar.metric("Hints remaining", hints_remaining) #beautify later
 
 #ask user for questions
-question = st.text_input("Ask a yes or no question about the celebrity. If you want help type 'hint'.")
-st.session_state.message.append({"role": "user", "content": question}) #save questions in session state
+question = st.chat_input("Ask a yes or no question about the celebrity. If you want help type 'hint'.")
+
 
 #if question is asked add to count and save - don't count hints
-if question:
+if question :
     if question.strip().lower() != "hint":
-        st.session_state_count.question_count += 1 
-        st.session_state.messages.append({"role": "user", "content": question})
+        st.session_state.question_count += 1 
+        st.session_state.message.append({"role": "user", "content": question})
 
-#
-with st.spinner("Pondering"):
-    response = client.chat.completions.create(
-        model="Qwen/Qwen3.5-122B-A10B-FP8",
-                    messages=st.session_state.messages)
+    #feed question to model and get response
+    try: 
+        with st.spinner("Pondering"):
+                response = client.chat.completions.create(
+                    model="Qwen/Qwen3.5-122B-A10B-FP8",
+                                message=st.session_state.message)
+    except APIConnectionError:
+        st.error("Problem connecting with server. Please try again later.")
+        st.session_state.key_check = False
+        st.stop()
+    except Exception as e:
+        st.error(f"Error: {e}") #catch all other other errors with the api
+        st.session_state.key_check = False
+        st.stop()
         
-    assistant_reply = response.choices[0].messages.content
+    assistant_reply = response.choices[0].message.content
     st.markdown(assistant_reply)
+    st.session_state.message.append({"role": "assistant", "content": assistant_reply})
+
+    #if user requests a hint, lookup in dictionary and add to sidebar
+    if question.lower() == "hint":
+        if st.session_state.hint_count >= 3: #no hints for chancers 
+            st.write("You are out of hints.")
+        else:
+            st.session_state.display_hint.append(celebrities[st.session_state.celebrity][st.session_state.hint_count]) #append to state for permanent display
+            st.session_state.hint_count += 1 #increment after to match indexing
 
 
-#if user requests a hint, lookup in dictionary and add to sidebar
-if question.lower() == "hint":
-    if st.session_state.hint_count >= 3: #no hints for chancers 
-        st.write("You are out of hints.")
-    else:
-        st.session_state.display_hint.append(celebrities[st.session_state.celebrity][st.session_state.hint_count]) #append to state for permanent display
-        st.session_state.hint_count += 1 #increment after to match indexing
-       
 #keep hints displayed permanently
 st.sidebar.write(st.session_state.display_hint.append)
 
