@@ -1,6 +1,6 @@
 # Guess the Celebrity
 
-The user has to guess the celebrity by engaging with an AI quizmaster, they have 20 questions and 3 hints to determine their choice. Users must provide their own API key to connect to the game.
+The user has to guess the celebrity by engaging with an AI quizmaster, they have 20 questions and 3 hints to determine their choice. Users must provide their own API key to connect to the game.The game can be accessed through the following link: https://app-guessing-game-jijcvnz5mgka9tfappwgk83.streamlit.app/ .
 
 ## How to play
 - Each game consists of 20 questions, when all questions are used you lose.
@@ -20,6 +20,8 @@ The user has to guess the celebrity by engaging with an AI quizmaster, they have
    ```
 
 Once the game opens paste your University of Osnabrück AI API key in the sidebar to begin.
+
+The game can also be played at the following link: https://app-guessing-game-jijcvnz5mgka9tfappwgk83.streamlit.app/ .
 
 ## Files
 - `app.py` – App setup, page navigation, API key check, and the celebrity/hint list
