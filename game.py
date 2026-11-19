@@ -1,6 +1,4 @@
 import streamlit as st
-import re
-import random
 from openai import OpenAI, AuthenticationError, APIConnectionError, APITimeoutError
 
 #keep model info

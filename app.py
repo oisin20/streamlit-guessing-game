@@ -1,5 +1,4 @@
 import streamlit as st
-import re
 from openai import OpenAI, AuthenticationError, APIConnectionError, APITimeoutError
 import random
 
