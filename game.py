@@ -44,6 +44,16 @@ celebrities = {
         ],
     }
 
+#score calculator easier to do here and save for each game
+def calculate_score(questions_used, hints_used):
+        base_score=100
+        question_penalty = questions_used * 4 #5 questions to guess correctly for max score if no hints used (is it too harsh?)
+        hint_penalty = hints_used * 20
+        no_hints_bonus =  20 if hints_used == 0 else 0 #bonus for not using any hints
+
+        score = (base_score - question_penalty -  hint_penalty + no_hints_bonus) / 10 #for visuals on barchart
+        return(max(0, min(10, score))) #cap the score between 0 and 100 
+
 #transition from key checking to game beginning
 if not st.session_state.game_start:
     st.write("You have 20 questions to guess the celebrity. Only yes or no questions are allowed. Are you ready!?")
@@ -56,6 +66,10 @@ if not st.session_state.game_start:
 #celebrity name for checking guesses
 celebrity = st.session_state.celebrity.strip().lower()
 
+#start with the sidebar open for hints and counter
+st.set_page_config(page_title="Game",
+                   layout="centered",
+                   initial_sidebar_state="expanded")
 
 #ask user for questions
 question = st.chat_input("Ask a yes or no question about the celebrity. If you want help type 'hint'.",
@@ -70,11 +84,18 @@ if question :
             #correct guess - checked here in code so the model isn't needed
             st.session_state.question_count += 1
             st.session_state.wins += 1
-            st.balloons()
+            game_score = calculate_score(st.session_state.question_count,st.session_state.hint_count)
+            st.session_state.game_history.append({"Game": f"Game {st.session_state.games_played}", #save to dictionary, needed for stats page
+                                                                "Questions Used": st.session_state.question_count,
+                                                                "Hints Used": st.session_state.hint_count,
+                                                                "Guess Score": game_score,
+                                                                 "Result": "Win" })
             st.session_state.display_messages.append({"role": "user", "content": question.strip()})
             st.session_state.display_messages.append({"role": "assistant", "content": f"Congragulations! You win! It was {st.session_state.celebrity}. Check the stats page to find out more about your performance."})
+            st.balloons()
             st.session_state.game_over = True
-            st.rerun() #redraw straight away so the input above is drawn disabled
+            st.rerun()
+            
 
         else:
             #feed question to model and get response
@@ -105,8 +126,15 @@ if question :
 
                 #out of questions - game over
                 if st.session_state.question_count >= MAX_QUESTIONS:
+                    game_score = calculate_score(st.session_state.question_count,st.session_state.hint_count)
+                    st.session_state.game_history.append({"Game": f"Game {st.session_state.games_played}",
+                                                                "Questions Used": st.session_state.question_count,
+                                                                "Hints Used": st.session_state.hint_count,
+                                                                "Guess Score": game_score,
+                                                                 "Result": "Loss" })
                     st.session_state.game_over = True
                     st.session_state.display_messages.append({"role": "assistant", "content": f"You lose! No questions remaining, the celebrity was {st.session_state.celebrity}."})
+
                     st.rerun() #restart script
 
     #if user requests a hint, lookup in dictionary and add to sidebar
@@ -128,6 +156,7 @@ if st.session_state.game_over:
     if st.button("Play again"):
         for key in ["question_count", "hint_count", "display_messages", "display_hint", "history", "celebrity", "game_over"]:
             st.session_state.pop(key, None) #pop deletes keys from session state, allows to reset game while keeping session state :)
+        st.session_state.games_played += 1
         st.rerun()
 
 #track the number of questions and hints
