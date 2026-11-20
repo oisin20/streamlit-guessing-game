@@ -25,7 +25,7 @@ if st.session_state.game_over == True:
 )   
     fig.update_yaxes(title_text="") #remove value label
     st.plotly_chart(fig)
-    st.caption("In this chart the guess score is out of 10 (score/10) for visual clarity")
+    st.caption("* In this chart the guess score is out of 10 (score/10) for visual clarity")
     
 
     # calculate and display as a progress bar

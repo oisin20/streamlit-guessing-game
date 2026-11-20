@@ -40,7 +40,34 @@ celebrities = {
             "Dropped out of college but kept attending one class.",
             "Was pushed out of the company co-founded, then returned to lead it.",
         ],
+        "Jensen Huang": [
+            "Worked as a dishwasher at a roadside diner chain before co-founding a company at one.",
+            "Holds an engineering degree and spent years designing microprocessors before becoming a CEO.",
+            "Known for wearing a signature black leather jacket and had recent controversy.",
+        ],
+        "Andy Burnham": [
+            "Studied English at Cambridge and worked as a parliamentary researcher before entering office.",
+            "Served in multiple UK Cabinet roles, including Health Secretary, before leaving Westminster.",
+            "Became the first directly elected mayor of a major northern English city-region.",
+        ],
+        "Taylor Swift": [
+            "Grew up on a Christmas tree farm before moving south as a teenager to pursue music.",
+            "Re-recorded several earlier studio albums in an ownership dispute.",
+            "Headlined a record-breaking global stadium tour structured around distinct musical eras.",
+        ],
+            "Serena Williams": [
+            "Was the youngest of five sisters and began training in a sport before starting school.",
+            "Competed professionally alongside an older sister for more than two decades.",
+            "Dominated women's tennis for years, winning more major singles titles than anyone else in the modern era.",
+        ],
+        "Marie Curie": [
+            "Worked as a governess to fund an older sister's studies before pursuing her own degree abroad.",
+            "Conducted pioneering research into invisible rays emitted by heavy minerals.",
+            "Became the first woman to win a Nobel Prize, later winning a second in another science.",
+        ]
     }
+
+    
 
 #score calculator easier to do here and save for each game
 def calculate_score(questions_used, hints_used):
